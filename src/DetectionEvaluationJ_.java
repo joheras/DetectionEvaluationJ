@@ -11,7 +11,7 @@ import workspace.roicomparison.RoiComparisonManager;
  *
  * @author joheras
  */
-public class LocationEvaluationJ_ implements PlugIn {
+public class DetectionEvaluationJ_ implements PlugIn {
 
     @Override
     public void run(String arg) {
