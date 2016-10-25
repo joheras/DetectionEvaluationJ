@@ -202,6 +202,51 @@ public class RoiCompare {
     public double fmeasure(double alpha) {
         return ((1 + alpha) * precision() * recall()) / (alpha * precision() + recall());
     }
+    
+    
+    
+    
+    // Intersect over Union (IOU) = TP/(TP+FN+FP) --- also known as Jaccard index
+    public double intersectionoverunion() {
+        return truepositive()/(truepositive()+falsenegative()+falsepositive());
+    }
+    
+    // Fowlkes-Mallows Index (G) = sqrt(precision*recall) --- also known as G-measure
+    public double fowlkesmallows() {
+        return Math.sqrt(precision() * recall());
+    }
+
+    // Matthews correlation coefficient (MCC) = (TP*TN-FP*FN)/sqrt(P*N*(TP+FP)(FN+TN))
+    public double matthewscorrelation() {
+        return (truepositive() * truenegative() - falsepositive() * falsenegative())
+                / Math.sqrt(positive() * negative() * (truepositive() + falsepositive())
+                        * (falsenegative() + truenegative()));
+    }
+    
+    // Youden's J statistic (J) = sensitivity +specifity -1 --- also known as Informedness
+    public double youdenjstatistic() {
+        return sensitivity()+specifity()-1;
+    }
+    
+    // Markedness (M) = precision +negative predictive value -1 --- also known as Yule coefficient
+    public double markedness() {
+        return precision()+negativepredictivevalue()-1;
+    }
+    
+    // Diagnostic odds ratio (DOR) = LR+/LR- 
+    public double diagnosticoddsratio() {
+        return lrplus()/lrminus();
+    }
+    
+    // Balanced accuracy (BACC) = (sensitivity+specifity)/2
+    public double balancedaccuracy() {
+        return (sensitivity()+specifity())/2;
+    }
+    
+    // Error rate(Err) = (FP+FN)/(P+N)
+    public double errorrate() {
+        return (falsepositive()+falsenegative())/(positive()+negative());
+    }
 
     /* Summary */
     public void measurements() {
@@ -227,6 +272,14 @@ public class RoiCompare {
         rt.addValue("F-measure alpha=0.5", fmeasure(0.5));
         rt.addValue("F-measure alpha=1", fmeasure(1));
         rt.addValue("F-measure alpha=2", fmeasure(2));
+        rt.addValue("Intersection over Union", intersectionoverunion());
+        rt.addValue("Fowlkes-Mallows index", fowlkesmallows());
+        rt.addValue("Matthews correlation coefficient", matthewscorrelation());
+        rt.addValue("Youden's J statistic", youdenjstatistic());
+        rt.addValue("Markedness", markedness());
+        rt.addValue("Diagnostic odds ratio", diagnosticoddsratio());
+        rt.addValue("Balanced accuracy", balancedaccuracy());
+        rt.addValue("Error rate", errorrate());
         rt.show("Measurements");
 
         ArrayList<Roi> rois1 = new ArrayList<>();
