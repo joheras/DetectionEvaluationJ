@@ -74,7 +74,7 @@ public class RoiCompareSeveralPointsHorizontal {
         
         
         ArrayList list = new ArrayList();
-        String headings = "Index\tTrue positive\tFalse positive\tTrue negative\tFalse negative\tPositive\tNegative\tAccuracy\tPrecision\tRecall\tFallout\tSensitivity\tSpecifity\tNegative predictive value\tFalse discovery rate\tFalse negative rate\tLR+\tLR-\tF-measure alpha=0.5\tF-measure alpha=1\tF-measure alpha=2";
+        String headings = "Index\tTrue positive\tFalse positive\tTrue negative\tFalse negative\tPositive\tNegative\tAccuracy\tPrecision\tRecall\tFallout\tSensitivity\tSpecifity\tNegative predictive value\tFalse discovery rate\tFalse negative rate\tLR+\tLR-\tF-measure alpha=0.5\tF-measure alpha=1\tF-measure alpha=2\tIntersection over Union\tFowlkes-Mallows index\tMatthews correlation coefficient\tYouden's J statistic\tMarkedness\tDiagnostic odds ratio\tBalanced accuracy\tError rate";
 
         
         double positive = truepositive + falsenegative;
@@ -93,11 +93,22 @@ public class RoiCompareSeveralPointsHorizontal {
         double alpha05 = ((1 + 0.5) * precision * recall) / (0.5 * precision + recall);
         double alpha1 = ((1 + 1) * precision * recall) / (1 * precision + recall);
         double alpha2 = ((1 + 2) * precision * recall) / (2 * precision + recall);
+        double intersectionoverunion = truepositive / (truepositive + falsenegative + falsepositive);
+        double fowlkesmallows = Math.sqrt(precision * recall);
+        double matthewscorrelation = ((truepositive * truenegative) - (falsepositive * falsenegative)) / Math.sqrt(positive * negative * (truepositive + falsepositive) * (falsenegative + truenegative));
+        double youdenjstatistic = sensitivity + specifity - 1;
+        double markedness = precision + negativepredictivevalue - 1;
+        double diagnosticoddsratio = lrplus / lrminus;
+        double balancedaccuracy = (sensitivity + specifity) / 2;
+        double errorrate = (falsepositive + falsenegative) / (positive + negative);
         list.add(1 + "\t" + truepositive + "\t" + falsepositive + "\t"
                 + truenegative + "\t" + falsenegative + "\t" + positive + "\t" + negative + "\t" + accuracy
                 + "\t" + precision + "\t" + recall + "\t" + fallout + "\t" + sensitivity + "\t" + specifity
                 + "\t" + negativepredictivevalue + "\t" + falsediscoveryrate + "\t" + falsenegativerate + "\t"
-                + lrplus + "\t" + lrminus + "\t" + alpha05 + "\t" + alpha1 + "\t" + alpha2);
+                + lrplus + "\t" + lrminus + "\t" + alpha05 + "\t" + alpha1 + "\t" + alpha2+ "\t" +
+                intersectionoverunion+ "\t" +fowlkesmallows+ "\t" +matthewscorrelation+ "\t" +
+                youdenjstatistic+ "\t" +markedness+ "\t" +diagnosticoddsratio+ "\t" +
+                balancedaccuracy+ "\t" +errorrate);
         
         
         TextWindow textWindow = new TextWindow("Measurements", headings, list, 600, 400);
@@ -151,11 +162,22 @@ public class RoiCompareSeveralPointsHorizontal {
         double alpha05 = ((1 + 0.5) * precision * recall) / (0.5 * precision + recall);
         double alpha1 = ((1 + 1) * precision * recall) / (1 * precision + recall);
         double alpha2 = ((1 + 2) * precision * recall) / (2 * precision + recall);
+        double intersectionoverunion = truepositive / (truepositive + falsenegative + falsepositive);
+        double fowlkesmallows = Math.sqrt(precision * recall);
+        double matthewscorrelation = ((truepositive * truenegative) - (falsepositive * falsenegative)) / Math.sqrt(positive * negative * (truepositive + falsepositive) * (falsenegative + truenegative));
+        double youdenjstatistic = sensitivity + specifity - 1;
+        double markedness = precision + negativepredictivevalue - 1;
+        double diagnosticoddsratio = lrplus / lrminus;
+        double balancedaccuracy = (sensitivity + specifity) / 2;
+        double errorrate = (falsepositive + falsenegative) / (positive + negative);
         list.add(i + "\t" + truepositive + "\t" + falsepositive + "\t"
                 + truenegative + "\t" + falsenegative + "\t" + positive + "\t" + negative + "\t" + accuracy
                 + "\t" + precision + "\t" + recall + "\t" + fallout + "\t" + sensitivity + "\t" + specifity
                 + "\t" + negativepredictivevalue + "\t" + falsediscoveryrate + "\t" + falsenegativerate + "\t"
-                + lrplus + "\t" + lrminus + "\t" + alpha05 + "\t" + alpha1 + "\t" + alpha2);
+                + lrplus + "\t" + lrminus + "\t" + alpha05 + "\t" + alpha1 + "\t" + alpha2+ "\t" +
+                intersectionoverunion+ "\t" +fowlkesmallows+ "\t" +matthewscorrelation+ "\t" +
+                youdenjstatistic+ "\t" +markedness+ "\t" +diagnosticoddsratio+ "\t" +
+                balancedaccuracy+ "\t" +errorrate);
         
         
        
@@ -212,11 +234,22 @@ public class RoiCompareSeveralPointsHorizontal {
         double alpha05 = ((1 + 0.5) * precision * recall) / (0.5 * precision + recall);
         double alpha1 = ((1 + 1) * precision * recall) / (1 * precision + recall);
         double alpha2 = ((1 + 2) * precision * recall) / (2 * precision + recall);
+        double intersectionoverunion = truepositive / (truepositive + falsenegative + falsepositive);
+        double fowlkesmallows = Math.sqrt(precision * recall);
+        double matthewscorrelation = ((truepositive * truenegative) - (falsepositive * falsenegative)) / Math.sqrt(positive * negative * (truepositive + falsepositive) * (falsenegative + truenegative));
+        double youdenjstatistic = sensitivity + specifity - 1;
+        double markedness = precision + negativepredictivevalue - 1;
+        double diagnosticoddsratio = lrplus / lrminus;
+        double balancedaccuracy = (sensitivity + specifity) / 2;
+        double errorrate = (falsepositive + falsenegative) / (positive + negative);
         list.add(m +"\t" +i + "\t" + truepositive + "\t" + falsepositive + "\t"
                 + truenegative + "\t" + falsenegative + "\t" + positive + "\t" + negative + "\t" + accuracy
                 + "\t" + precision + "\t" + recall + "\t" + fallout + "\t" + sensitivity + "\t" + specifity
                 + "\t" + negativepredictivevalue + "\t" + falsediscoveryrate + "\t" + falsenegativerate + "\t"
-                + lrplus + "\t" + lrminus + "\t" + alpha05 + "\t" + alpha1 + "\t" + alpha2);
+                + lrplus + "\t" + lrminus + "\t" + alpha05 + "\t" + alpha1 + "\t" + alpha2+ "\t" +
+                intersectionoverunion+ "\t" +fowlkesmallows+ "\t" +matthewscorrelation+ "\t" +
+                youdenjstatistic+ "\t" +markedness+ "\t" +diagnosticoddsratio+ "\t" +
+                balancedaccuracy+ "\t" +errorrate);
         
         
        
@@ -281,11 +314,22 @@ public class RoiCompareSeveralPointsHorizontal {
         double alpha05 = ((1 + 0.5) * precision * recall) / (0.5 * precision + recall);
         double alpha1 = ((1 + 1) * precision * recall) / (1 * precision + recall);
         double alpha2 = ((1 + 2) * precision * recall) / (2 * precision + recall);
+        double intersectionoverunion = truepositive / (truepositive + falsenegative + falsepositive);
+        double fowlkesmallows = Math.sqrt(precision * recall);
+        double matthewscorrelation = ((truepositive * truenegative) - (falsepositive * falsenegative)) / Math.sqrt(positive * negative * (truepositive + falsepositive) * (falsenegative + truenegative));
+        double youdenjstatistic = sensitivity + specifity - 1;
+        double markedness = precision + negativepredictivevalue - 1;
+        double diagnosticoddsratio = lrplus / lrminus;
+        double balancedaccuracy = (sensitivity + specifity) / 2;
+        double errorrate = (falsepositive + falsenegative) / (positive + negative);
         list.add(author + "\t" +method + "\t" + truepositive + "\t" + falsepositive + "\t"
                 + truenegative + "\t" + falsenegative + "\t" + positive + "\t" + negative + "\t" + accuracy
                 + "\t" + precision + "\t" + recall + "\t" + fallout + "\t" + sensitivity + "\t" + specifity
                 + "\t" + negativepredictivevalue + "\t" + falsediscoveryrate + "\t" + falsenegativerate + "\t"
-                + lrplus + "\t" + lrminus + "\t" + alpha05 + "\t" + alpha1 + "\t" + alpha2);
+                + lrplus + "\t" + lrminus + "\t" + alpha05 + "\t" + alpha1 + "\t" + alpha2+ "\t" +
+                intersectionoverunion+ "\t" +fowlkesmallows+ "\t" +matthewscorrelation+ "\t" +
+                youdenjstatistic+ "\t" +markedness+ "\t" +diagnosticoddsratio+ "\t" +
+                balancedaccuracy+ "\t" +errorrate);
         
         
 //        TextWindow textWindow = new TextWindow("Measurements", headings, list, 600, 400);
@@ -344,11 +388,22 @@ public class RoiCompareSeveralPointsHorizontal {
         double alpha05 = ((1 + 0.5) * precision * recall) / (0.5 * precision + recall);
         double alpha1 = ((1 + 1) * precision * recall) / (1 * precision + recall);
         double alpha2 = ((1 + 2) * precision * recall) / (2 * precision + recall);
+        double intersectionoverunion = truepositive / (truepositive + falsenegative + falsepositive);
+        double fowlkesmallows = Math.sqrt(precision * recall);
+        double matthewscorrelation = ((truepositive * truenegative) - (falsepositive * falsenegative)) / Math.sqrt(positive * negative * (truepositive + falsepositive) * (falsenegative + truenegative));
+        double youdenjstatistic = sensitivity + specifity - 1;
+        double markedness = precision + negativepredictivevalue - 1;
+        double diagnosticoddsratio = lrplus / lrminus;
+        double balancedaccuracy = (sensitivity + specifity) / 2;
+        double errorrate = (falsepositive + falsenegative) / (positive + negative);
         list.add(author + "\t Lane" + (i-1) + "\t" + truepositive + "\t" + falsepositive + "\t"
                 + truenegative + "\t" + falsenegative + "\t" + positive + "\t" + negative + "\t" + accuracy
                 + "\t" + precision + "\t" + recall + "\t" + fallout + "\t" + sensitivity + "\t" + specifity
                 + "\t" + negativepredictivevalue + "\t" + falsediscoveryrate + "\t" + falsenegativerate + "\t"
-                + lrplus + "\t" + lrminus + "\t" + alpha05 + "\t" + alpha1 + "\t" + alpha2);
+                + lrplus + "\t" + lrminus + "\t" + alpha05 + "\t" + alpha1 + "\t" + alpha2+ "\t" +
+                intersectionoverunion+ "\t" +fowlkesmallows+ "\t" +matthewscorrelation+ "\t" +
+                youdenjstatistic+ "\t" +markedness+ "\t" +diagnosticoddsratio+ "\t" +
+                balancedaccuracy+ "\t" +errorrate);
         
         
 //        TextWindow textWindow = new TextWindow("Measurements", headings, list, 600, 400);

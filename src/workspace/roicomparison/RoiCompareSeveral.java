@@ -80,6 +80,14 @@ public class RoiCompareSeveral {
             rt.addValue("F-measure alpha=0.5", rc.fmeasure(0.5));
             rt.addValue("F-measure alpha=1", rc.fmeasure(1));
             rt.addValue("F-measure alpha=2", rc.fmeasure(2));
+            rt.addValue("Intersection over Union", rc.intersectionoverunion());
+            rt.addValue("Fowlkes-Mallows index", rc.fowlkesmallows());
+            rt.addValue("Matthews correlation coefficient", rc.matthewscorrelation());
+            rt.addValue("Youden's J statistic", rc.youdenjstatistic());
+            rt.addValue("Markedness", rc.markedness());
+            rt.addValue("Diagnostic odds ratio", rc.diagnosticoddsratio());
+            rt.addValue("Balanced accuracy", rc.balancedaccuracy());
+            rt.addValue("Error rate", rc.errorrate());
 
             tprs[i] = sens;
             fprs[i] = 1 - spec;
@@ -137,6 +145,22 @@ public class RoiCompareSeveral {
         rt.addValue("F-measure alpha=0.5", ((1 + 0.5) * precision * recall) / (0.5 * precision + recall));
         rt.addValue("F-measure alpha=1", ((1 + 1) * precision * recall) / (1 * precision + recall));
         rt.addValue("F-measure alpha=2", ((1 + 2) * precision * recall) / (2 * precision + recall));
+        double intersectionoverunion = truepositive / (truepositive + falsenegative + falsepositive);
+        rt.addValue("Intersection over Union", intersectionoverunion);
+        double fowlkesmallows = Math.sqrt(precision * recall);
+        rt.addValue("Fowlkes-Mallows index", fowlkesmallows);
+        double matthewscorrelation = ((truepositive * truenegative) - (falsepositive * falsenegative)) / Math.sqrt(positive * negative * (truepositive + falsepositive) * (falsenegative + truenegative));
+        rt.addValue("Matthews correlation coefficient", matthewscorrelation);
+        double youdenjstatistic = sensitivity + specificity - 1;
+        rt.addValue("Youden's J statistic", youdenjstatistic);
+        double markedness = precision + negativepredictivevalue - 1;
+        rt.addValue("Markedness", markedness);
+        double diagnosticoddsratio = lrplus / lrminus;
+        rt.addValue("Diagnostic odds ratio", diagnosticoddsratio);
+        double balancedaccuracy = (sensitivity + specificity) / 2;
+        rt.addValue("Balanced accuracy", balancedaccuracy);
+        double errorrate = (falsepositive + falsenegative) / (positive + negative);
+        rt.addValue("Error rate", errorrate);
 
         rt.show("Measurements");
 
@@ -214,6 +238,14 @@ public class RoiCompareSeveral {
             rt.addValue("F-measure alpha=0.5", rc.fmeasure(0.5));
             rt.addValue("F-measure alpha=1", rc.fmeasure(1));
             rt.addValue("F-measure alpha=2", rc.fmeasure(2));
+            rt.addValue("Intersection over Union", rc.intersectionoverunion());
+            rt.addValue("Fowlkes-Mallows index", rc.fowlkesmallows());
+            rt.addValue("Matthews correlation coefficient", rc.matthewscorrelation());
+            rt.addValue("Youden's J statistic", rc.youdenjstatistic());
+            rt.addValue("Markedness", rc.markedness());
+            rt.addValue("Diagnostic odds ratio", rc.diagnosticoddsratio());
+            rt.addValue("Balanced accuracy", rc.balancedaccuracy());
+            rt.addValue("Error rate", rc.errorrate());
 
             tprs[i] = sens;
             fprs[i] = 1 - spec;
@@ -273,7 +305,7 @@ public class RoiCompareSeveral {
 
         /// The table
         ArrayList list = new ArrayList();
-        String headings = "Index\tLabel\tTrue ROI\tHypothesised ROI\tTrue positive\tFalse Positive\tTrue negative\tFalse negative\tPositive\tNegative\tAccuracy\tPrecision\tRecall\tFallout\tSensitivity\tSpecifity\tNegative predictive value\tFalse discovery rate\tFalse negative rate\tLR+\tLR-\tF-measure alpha=0.5\tF-measure alpha=1\tF-measure alpha=2";
+        String headings = "Index\tLabel\tTrue ROI\tHypothesised ROI\tTrue positive\tFalse Positive\tTrue negative\tFalse negative\tPositive\tNegative\tAccuracy\tPrecision\tRecall\tFallout\tSensitivity\tSpecifity\tNegative predictive value\tFalse discovery rate\tFalse negative rate\tLR+\tLR-\tF-measure alpha=0.5\tF-measure alpha=1\tF-measure alpha=2\tIntersection over Union\tFowlkes-Mallows index\tMatthews correlation coefficient\tYouden's J statistic\tMarkedness\tDiagnostic odds ratio\tBalanced accuracy\tError rate";
 
         for (int i = 0; i < rois1.size(); i++) {
             RoiCompare rc = new RoiCompare(rois1.get(i), roisb.get(i), IJ.getImage());
@@ -295,7 +327,10 @@ public class RoiCompareSeveral {
                     + sens + "\t" + spec + "\t" + rc.negativepredictivevalue() + "\t"
                     + rc.falsediscoveryrate() + "\t" + rc.falsenegativerate() + "\t"
                     + rc.lrplus() + "\t" + rc.lrminus() + "\t" + rc.fmeasure(0.5) + "\t"
-                    + rc.fmeasure(1) + "\t" + rc.fmeasure(2));
+                    + rc.fmeasure(1) + "\t" + rc.fmeasure(2) + "\t" + rc.intersectionoverunion() + "\t" + 
+                    rc.fowlkesmallows()+ "\t"+rc.matthewscorrelation()+ "\t"+
+                    rc.youdenjstatistic()+ "\t"+rc.markedness()+ "\t"+rc.diagnosticoddsratio()+ "\t"+
+                    rc.balancedaccuracy()+ "\t"+rc.errorrate());
 
             tprs[i] = sens;
             fprs[i] = 1 - spec;
@@ -336,11 +371,22 @@ public class RoiCompareSeveral {
         double alpha05 = ((1 + 0.5) * precision * recall) / (0.5 * precision + recall);
         double alpha1 = ((1 + 1) * precision * recall) / (1 * precision + recall);
         double alpha2 = ((1 + 2) * precision * recall) / (2 * precision + recall);
+        double intersectionoverunion = truepositive / (truepositive + falsenegative + falsepositive);
+        double fowlkesmallows = Math.sqrt(precision * recall);
+        double matthewscorrelation = ((truepositive * truenegative) - (falsepositive * falsenegative)) / Math.sqrt(positive * negative * (truepositive + falsepositive) * (falsenegative + truenegative));
+        double youdenjstatistic = sensitivity + specificity - 1;
+        double markedness = precision + negativepredictivevalue - 1;
+        double diagnosticoddsratio = lrplus / lrminus;
+        double balancedaccuracy = (sensitivity + specificity) / 2;
+        double errorrate = (falsepositive + falsenegative) / (positive + negative);
         list.add(rois1.size() + 1 + "\t Total \t \t \t" + truepositive + "\t" + falsepositive + "\t"
                 + truenegative + "\t" + falsenegative + "\t" + positive + "\t" + negative + "\t" + accuracy
                 + "\t" + precision + "\t" + recall + "\t" + fallout + "\t" + sensitivity + "\t" + specificity
                 + "\t" + negativepredictivevalue + "\t" + falsediscoveryrate + "\t" + falsenegativerate + "\t"
-                + lrplus + "\t" + lrminus + "\t" + alpha05 + "\t" + alpha1 + "\t" + alpha2);
+                + lrplus + "\t" + lrminus + "\t" + alpha05 + "\t" + alpha1 + "\t" + alpha2+ "\t" +
+                intersectionoverunion+ "\t" +fowlkesmallows+ "\t" +matthewscorrelation+ "\t" +
+                youdenjstatistic+ "\t" +markedness+ "\t" +diagnosticoddsratio+ "\t" +
+                balancedaccuracy+ "\t" +errorrate);
 
         TextWindow textWindow = new TextWindow("Measurements", headings, list, 600, 400);
 
@@ -371,7 +417,7 @@ public class RoiCompareSeveral {
         double[] fprs = new double[rois1.size()];
 
         /// The table
-        String headings = "Index\tLabel\tTrue ROI\tHypothesised ROI\tTrue positive\tFalse Positive\tTrue negative\tFalse negative\tPositive\tNegative\tAccuracy\tPrecision\tRecall\tFallout\tSensitivity\tSpecifity\tNegative predictive value\tFalse discovery rate\tFalse negative rate\tLR+\tLR-\tF-measure alpha=0.5\tF-measure alpha=1\tF-measure alpha=2";
+        String headings = "Index\tLabel\tTrue ROI\tHypothesised ROI\tTrue positive\tFalse Positive\tTrue negative\tFalse negative\tPositive\tNegative\tAccuracy\tPrecision\tRecall\tFallout\tSensitivity\tSpecifity\tNegative predictive value\tFalse discovery rate\tFalse negative rate\tLR+\tLR-\tF-measure alpha=0.5\tF-measure alpha=1\tF-measure alpha=2\tIntersection over Union\tFowlkes-Mallows index\tMatthews correlation coefficient\tYouden's J statistic\tMarkedness\tDiagnostic odds ratio\tBalanced accuracy\tError rate";
 
         for (int i = 0; i < rois1.size(); i++) {
             RoiCompare rc = new RoiCompare(rois1.get(i), roisb.get(i), IJ.getImage());
@@ -393,7 +439,10 @@ public class RoiCompareSeveral {
                     + sens + "\t" + spec + "\t" + rc.negativepredictivevalue() + "\t"
                     + rc.falsediscoveryrate() + "\t" + rc.falsenegativerate() + "\t"
                     + rc.lrplus() + "\t" + rc.lrminus() + "\t" + rc.fmeasure(0.5) + "\t"
-                    + rc.fmeasure(1) + "\t" + rc.fmeasure(2));
+                    + rc.fmeasure(1) + "\t" + rc.fmeasure(2)+ "\t" + rc.intersectionoverunion() + "\t" + 
+                    rc.fowlkesmallows()+ "\t"+rc.matthewscorrelation()+ "\t"+
+                    rc.youdenjstatistic()+ "\t"+rc.markedness()+ "\t"+rc.diagnosticoddsratio()+ "\t"+
+                    rc.balancedaccuracy()+ "\t"+rc.errorrate());
 
             tprs[i] = sens;
             fprs[i] = 1 - spec;
@@ -434,11 +483,22 @@ public class RoiCompareSeveral {
         double alpha05 = ((1 + 0.5) * precision * recall) / (0.5 * precision + recall);
         double alpha1 = ((1 + 1) * precision * recall) / (1 * precision + recall);
         double alpha2 = ((1 + 2) * precision * recall) / (2 * precision + recall);
+        double intersectionoverunion = truepositive / (truepositive + falsenegative + falsepositive);
+        double fowlkesmallows = Math.sqrt(precision * recall);
+        double matthewscorrelation = ((truepositive * truenegative) - (falsepositive * falsenegative)) / Math.sqrt(positive * negative * (truepositive + falsepositive) * (falsenegative + truenegative));
+        double youdenjstatistic = sensitivity + specificity - 1;
+        double markedness = precision + negativepredictivevalue - 1;
+        double diagnosticoddsratio = lrplus / lrminus;
+        double balancedaccuracy = (sensitivity + specificity) / 2;
+        double errorrate = (falsepositive + falsenegative) / (positive + negative);
         list.add(rois1.size() + 1 + "\t Total \t \t \t" + truepositive + "\t" + falsepositive + "\t"
                 + truenegative + "\t" + falsenegative + "\t" + positive + "\t" + negative + "\t" + accuracy
                 + "\t" + precision + "\t" + recall + "\t" + fallout + "\t" + sensitivity + "\t" + specificity
                 + "\t" + negativepredictivevalue + "\t" + falsediscoveryrate + "\t" + falsenegativerate + "\t"
-                + lrplus + "\t" + lrminus + "\t" + alpha05 + "\t" + alpha1 + "\t" + alpha2);
+                + lrplus + "\t" + lrminus + "\t" + alpha05 + "\t" + alpha1 + "\t" + alpha2+ "\t" +
+                intersectionoverunion+ "\t" +fowlkesmallows+ "\t" +matthewscorrelation+ "\t" +
+                youdenjstatistic+ "\t" +markedness+ "\t" +diagnosticoddsratio+ "\t" +
+                balancedaccuracy+ "\t" +errorrate);
 
         TextWindow textWindow = new TextWindow("Measurements", headings, list, 600, 400);
 
@@ -473,7 +533,7 @@ public class RoiCompareSeveral {
         double[] fprs = new double[rois1.size()];
 
         ArrayList list = new ArrayList();
-        String headings = "Index\tLabel\tTrue ROI\tHypothesised ROI\tTrue positive\tFalse Positive\tTrue negative\tFalse negative\tPositive\tNegative\tAccuracy\tPrecision\tRecall\tFallout\tSensitivity\tSpecifity\tNegative predictive value\tFalse discovery rate\tFalse negative rate\tLR+\tLR-\tF-measure alpha=0.5\tF-measure alpha=1\tF-measure alpha=2";
+        String headings = "Index\tLabel\tTrue ROI\tHypothesised ROI\tTrue positive\tFalse Positive\tTrue negative\tFalse negative\tPositive\tNegative\tAccuracy\tPrecision\tRecall\tFallout\tSensitivity\tSpecifity\tNegative predictive value\tFalse discovery rate\tFalse negative rate\tLR+\tLR-\tF-measure alpha=0.5\tF-measure alpha=1\tF-measure alpha=2\tIntersection over Union\tFowlkes-Mallows index\tMatthews correlation coefficient\tYouden's J statistic\tMarkedness\tDiagnostic odds ratio\tBalanced accuracy\tError rate";
 
         for (int i = 0; i < rois1.size(); i++) {
             RoiCompare rc = new RoiCompare(rois1.get(i), roisb.get(i), IJ.getImage());
@@ -495,7 +555,10 @@ public class RoiCompareSeveral {
                     + sens + "\t" + spec + "\t" + rc.negativepredictivevalue() + "\t"
                     + rc.falsediscoveryrate() + "\t" + rc.falsenegativerate() + "\t"
                     + rc.lrplus() + "\t" + rc.lrminus() + "\t" + rc.fmeasure(0.5) + "\t"
-                    + rc.fmeasure(1) + "\t" + rc.fmeasure(2));
+                    + rc.fmeasure(1) + "\t" + rc.fmeasure(2)+ "\t" + rc.intersectionoverunion() + "\t" + 
+                    rc.fowlkesmallows()+ "\t"+rc.matthewscorrelation()+ "\t"+
+                    rc.youdenjstatistic()+ "\t"+rc.markedness()+ "\t"+rc.diagnosticoddsratio()+ "\t"+
+                    rc.balancedaccuracy()+ "\t"+rc.errorrate());
 
             tprs[i] = sens;
             fprs[i] = 1 - spec;
@@ -534,7 +597,7 @@ public class RoiCompareSeveral {
         double[] tprs = new double[rois1.size()];
         double[] fprs = new double[rois1.size()];
 
-        String headings = "Index\tLabel\tTrue ROI\tHypothesised ROI\tTrue positive\tFalse Positive\tTrue negative\tFalse negative\tPositive\tNegative\tAccuracy\tPrecision\tRecall\tFallout\tSensitivity\tSpecifity\tNegative predictive value\tFalse discovery rate\tFalse negative rate\tLR+\tLR-\tF-measure alpha=0.5\tF-measure alpha=1\tF-measure alpha=2";
+        String headings = "Index\tLabel\tTrue ROI\tHypothesised ROI\tTrue positive\tFalse Positive\tTrue negative\tFalse negative\tPositive\tNegative\tAccuracy\tPrecision\tRecall\tFallout\tSensitivity\tSpecifity\tNegative predictive value\tFalse discovery rate\tFalse negative rate\tLR+\tLR-\tF-measure alpha=0.5\tF-measure alpha=1\tF-measure alpha=2\tIntersection over Union\tFowlkes-Mallows index\tMatthews correlation coefficient\tYouden's J statistic\tMarkedness\tDiagnostic odds ratio\tBalanced accuracy\tError rate";
 
         for (int i = 0; i < rois1.size(); i++) {
             RoiCompare rc = new RoiCompare(rois1.get(i), roisb.get(i), IJ.getImage());
@@ -556,7 +619,10 @@ public class RoiCompareSeveral {
                     + sens + "\t" + spec + "\t" + rc.negativepredictivevalue() + "\t"
                     + rc.falsediscoveryrate() + "\t" + rc.falsenegativerate() + "\t"
                     + rc.lrplus() + "\t" + rc.lrminus() + "\t" + rc.fmeasure(0.5) + "\t"
-                    + rc.fmeasure(1) + "\t" + rc.fmeasure(2));
+                    + rc.fmeasure(1) + "\t" + rc.fmeasure(2)+ "\t" + rc.intersectionoverunion() + "\t" + 
+                    rc.fowlkesmallows()+ "\t"+rc.matthewscorrelation()+ "\t"+
+                    rc.youdenjstatistic()+ "\t"+rc.markedness()+ "\t"+rc.diagnosticoddsratio()+ "\t"+
+                    rc.balancedaccuracy()+ "\t"+rc.errorrate());
 
             tprs[i] = sens;
             fprs[i] = 1 - spec;
@@ -612,7 +678,10 @@ public class RoiCompareSeveral {
                     + sens + "\t" + spec + "\t" + rc.negativepredictivevalue() + "\t"
                     + rc.falsediscoveryrate() + "\t" + rc.falsenegativerate() + "\t"
                     + rc.lrplus() + "\t" + rc.lrminus() + "\t" + rc.fmeasure(0.5) + "\t"
-                    + rc.fmeasure(1) + "\t" + rc.fmeasure(2));
+                    + rc.fmeasure(1) + "\t" + rc.fmeasure(2)+ "\t" + rc.intersectionoverunion() + "\t" + 
+                    rc.fowlkesmallows()+ "\t"+rc.matthewscorrelation()+ "\t"+
+                    rc.youdenjstatistic()+ "\t"+rc.markedness()+ "\t"+rc.diagnosticoddsratio()+ "\t"+
+                    rc.balancedaccuracy()+ "\t"+rc.errorrate());
 
             tprs[i] = sens;
             fprs[i] = 1 - spec;

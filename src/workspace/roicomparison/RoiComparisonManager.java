@@ -142,7 +142,7 @@ public class RoiComparisonManager extends PlugInFrame implements ActionListener,
     double[] y = {0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1};
     Plot plot = new Plot("ROC space", "FPR or (1-specifity)", "TPR or sensitivity", x, y);
     ArrayList listres = new ArrayList();
-    String headings = "Index\tLabel\tGold Standard ROI\tHypothesised ROI\tTrue positive\tFalse Positive\tTrue negative\tFalse negative\tPositive\tNegative\tAccuracy\tPrecision\tRecall\tFallout\tSensitivity\tSpecifity\tNegative predictive value\tFalse discovery rate\tFalse negative rate\tLR+\tLR-\tF-measure alpha=0.5\tF-measure alpha=1\tF-measure alpha=2";
+    String headings = "Index\tLabel\tGold Standard ROI\tHypothesised ROI\tTrue positive\tFalse Positive\tTrue negative\tFalse negative\tPositive\tNegative\tAccuracy\tPrecision\tRecall\tFallout\tSensitivity\tSpecifity\tNegative predictive value\tFalse discovery rate\tFalse negative rate\tLR+\tLR-\tF-measure alpha=0.5\tF-measure alpha=1\tF-measure alpha=2\tIntersection over Union\tFowlkes-Mallows index\tMatthews correlation coefficient\tYouden's J statistic\tMarkedness\tDiagnostic odds ratio\tBalanced accuracy\tError rate";
 
     public RoiComparisonManager() {
         super("Performance Evaluation Manager");
