@@ -1618,6 +1618,19 @@ public class RoiComparisonManager extends PlugInFrame implements ActionListener,
             }
             roi2 = (Roi) rois.get(name2);
         }
+        roi2 = (Roi) rois2.get(name2);
+        while (roi2 != null) {
+            roi2 = (Roi) rois2.get(name2);
+            if (roi2 != null) {
+                int lastDash = name2.lastIndexOf("-");
+                if (lastDash != -1 && name2.length() - lastDash < 5) {
+                    name2 = name2.substring(0, lastDash);
+                }
+                name2 = name2 + "-" + n;
+                n++;
+            }
+            roi2 = (Roi) rois2.get(name2);
+        }
         return name2;
     }
 
