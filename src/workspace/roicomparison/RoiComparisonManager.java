@@ -8,11 +8,13 @@ import ij.Prefs;
 import ij.Undo;
 import ij.WindowManager;
 import ij.gui.ColorChooser;
+import ij.gui.EllipseRoi;
 import ij.gui.GUI;
 import ij.gui.GenericDialog;
 import ij.gui.ImageCanvas;
 import ij.gui.ImageRoi;
 import ij.gui.MessageDialog;
+import ij.gui.OvalRoi;
 import ij.gui.Overlay;
 import ij.gui.Plot;
 import ij.gui.PointRoi;
@@ -73,7 +75,9 @@ import java.awt.event.WindowEvent;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -90,6 +94,18 @@ import javax.swing.ListSelectionModel;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+import javax.xml.validation.Validator;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 /**
  * This plugin implements the Analyze/Tools/ROI Manager command.
@@ -142,7 +158,7 @@ public class RoiComparisonManager extends PlugInFrame implements ActionListener,
     double[] y = {0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1};
     Plot plot = new Plot("ROC space", "FPR or (1-specifity)", "TPR or sensitivity", x, y);
     ArrayList listres = new ArrayList();
-    String headings = "Index\tLabel\tGold Standard ROI\tHypothesised ROI\tTrue positive\tFalse Positive\tTrue negative\tFalse negative\tPositive\tNegative\tAccuracy\tPrecision\tRecall\tFallout\tSensitivity\tSpecifity\tNegative predictive value\tFalse discovery rate\tFalse negative rate\tLR+\tLR-\tF-measure alpha=0.5\tF-measure alpha=1\tF-measure alpha=2\tIntersection over Union\tFowlkes-Mallows index\tMatthews correlation coefficient\tYouden's J statistic\tMarkedness\tDiagnostic odds ratio\tBalanced accuracy\tError rate";
+    String headings = "Index\tLabel\tGold Standard ROI\tHypothesised ROI\tTrue positive\tFalse Positive\tTrue negative\tFalse negative\tPositive\tNegative\tAccuracy\tPrecision\tRecall\tFallout\tSensitivity\tSpecifity\tNegative predictive value\tFalse discovery rate\tFalse negative rate\tLR+\tLR-\tF-measure alpha=0.5\tF-measure alpha=1\tF-measure alpha=2";
 
     public RoiComparisonManager() {
         super("Performance Evaluation Manager");
@@ -204,6 +220,9 @@ public class RoiComparisonManager extends PlugInFrame implements ActionListener,
         addButton("Load Hypothesised Roi");
         addButton("Save Gold Standard Roi");
         addButton("Save Hypothesised Roi");
+        addButton("Open Gold Standard Roi from XML");
+        addButton("Open Hypothesised Standard Roi from XML");
+
         showAllCheckbox.addItemListener(this);
         panel.add(showAllCheckbox);
         labelsCheckbox.addItemListener(this);
@@ -322,6 +341,319 @@ public class RoiComparisonManager extends PlugInFrame implements ActionListener,
             delete2(false);
         } else if (command.equals("Performance Evaluation")) {
             performanceevaluation();
+        } else if (command.equals("Open Gold Standard Roi from XML")) {
+            openGoldXML();
+        } else if (command.equals("Open Hypothesised Standard Roi from XML")) {
+            openHypothesiedXML();
+        }
+
+    }
+
+    //Manuel García
+    private void openGoldXML() {
+        String path = "";
+        Macro.setOptions(null);
+        String name = null;
+        if (path == null || path.equals("")) {
+            OpenDialog od = new OpenDialog("Open Selection(s)...", "");
+            String directory = od.getDirectory();
+            name = od.getFileName();
+            if (name == null) {
+                return;
+            }
+            path = directory + name;
+        }
+
+        Opener o = new Opener();
+        if (name == null) {
+            name = o.getName(path);
+        }
+
+        if (name.endsWith(".xml")) {
+            name = name.substring(0, name.length() - 4);
+        }
+        name = getUniqueName(name);
+        readXML(path,true);//El método que hemos creado para leer el XML y agregar las ROIs
+        updateShowAll();
+    }
+    
+    private void openHypothesiedXML(){
+        String path = "";
+        Macro.setOptions(null);
+        String name = null;
+        if (path == null || path.equals("")) {
+            OpenDialog od = new OpenDialog("Open Selection(s)...", "");
+            String directory = od.getDirectory();
+            name = od.getFileName();
+            if (name == null) {
+                return;
+            }
+            path = directory + name;
+        }
+
+        Opener o = new Opener();
+        if (name == null) {
+            name = o.getName(path);
+        }
+
+        if (name.endsWith(".xml")) {
+            name = name.substring(0, name.length() - 4);
+        }
+        name = getUniqueName(name);
+        readXML(path,false);//El método que hemos creado para leer el XML y agregar las ROIs
+
+        updateShowAll();
+    }
+    
+    /*
+    Método para leer el archivo XML. En este método también comprobamos que el XML es válido contra el schema que debe cumplir.
+    Los parámetros de entrada son el path del XML que hemos capturado mediante el plugin y un booleano. Este booleano nos ayuda a 
+    reutilizar el código, de esta manera si es true lo que leamos lo añadiremos a la parte de Gold Standard y si es false lo añadiremos
+    a la parte de los hipotéticos.
+    Dentro del método encontramos que se comprueba también qué estamos leyendo. En función de lo que se haya leído se creará una serie 
+    de región u otra.
+    */
+    private void readXML(String path,Boolean isGoldStandard) {
+        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+        File docXML = new File(path);
+        File docXSD = new File("..\\ejemplo1.xsd");
+
+        try {
+
+            SchemaFactory factory = SchemaFactory.newInstance("http://www.w3.org/XML/XMLSchema/v1.1");
+            Schema schema = factory.newSchema(docXSD);
+            Validator validator = schema.newValidator();
+            validator.validate(new StreamSource(docXML));
+
+            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = dbf.newDocumentBuilder();
+            //Ruta del archivo xml a leer
+            Document doc = builder.parse(docXML);
+
+            //Obtenemos el elemento raiz que tiene el arachivo XML que estamos leyendo
+            Element root = doc.getDocumentElement();
+            //Mostramos el nombre para ver que realmente es lo que queremos obtener
+            //System.out.println("Nombre del elemento raíz: " + root.getNodeName());
+
+            /*
+            Recogemos todos los elementos image del XML. En nuestro caso solo tenemos uno por archivo. Una vez que sabemos eso, lo que hacemos
+            es obtener solo el primer elemento que es el que tiene la información y queremos leer.            
+             */
+            NodeList images = root.getElementsByTagName("image");
+            Node image = images.item(0);
+            //Mostramos los datos de la imagen a la que se hace referencia en el documento XML
+            System.out.println("Archivo: "+path +"\n\tLa imagen de esa ruta tiene \n\t\t ruta: " + image.getChildNodes().item(1).getTextContent()
+                    + "\n\t\t alto: " + image.getChildNodes().item(3).getTextContent()
+                    + "\n\t\t ancho: " + image.getChildNodes().item(5).getTextContent() + "\n\n");
+
+            /*
+            Ahora nos vamos a centrar en sacar todas las regiones de interés que tendrá ese documento. Hay que tener en cuenta que el documento
+            puede estar formado por diferentes regiones como puntos, cuadrados... es por ello que deberemos controlar qué elemento es el que
+            estamos leyendo en cada momento para poder trabajar con el correctamente.
+            Una vez que comprobamos el tag de la región de interés ya sabremos que tipo de región es, por lo que podremos mostrar los datos que 
+            almacena sin problema.
+             */
+            NodeList rois = root.getElementsByTagName("ROIs");
+            Element regiones = (Element) rois.item(0);
+
+            //Obtenemos la lista con todas las regiones
+            NodeList hijos = regiones.getChildNodes();
+            //Comprobamos el tipo del tag que hemos leído para saber con que tipo de región de interés trabajar para obtener los datos.
+            switch (hijos.item(1).getNodeName()) {
+                //Para el caso del punto
+                case ("point"):
+                    for (int i = 0; i < hijos.getLength(); i++) {
+                        if (hijos.item(i).getNodeName() == "point") {
+                            double x=Double.parseDouble(hijos.item(i).getChildNodes().item(1).getTextContent());
+                            double y=Double.parseDouble(hijos.item(i).getChildNodes().item(3).getTextContent());
+                            
+                            PointRoi point = new PointRoi(x, y);
+                            
+                            if(isGoldStandard){addRoi(point);}
+                            else{addRoi2(point);}
+                            //Sacamos por pantalla el elemento 1 y el 3 porque en la 0 y la dos tenemos los saltos de línea.
+                            /*
+                            System.out.println("Punto :\n \t x: "
+                                    + hijos.item(i).getChildNodes().item(1).getTextContent() + "\n \t y: "
+                                    + hijos.item(i).getChildNodes().item(3).getTextContent());
+                            */
+                        }
+                    }
+                    break;
+
+                //Para el caso del óvalo
+                case ("oval"):
+                    for (int i = 0; i < hijos.getLength(); i++) {
+                        if (hijos.item(i).getNodeName() == "oval") {
+                            double x=Double.parseDouble(hijos.item(i).getChildNodes().item(1).getChildNodes().item(1).getTextContent());
+                            double y=Double.parseDouble(hijos.item(i).getChildNodes().item(1).getChildNodes().item(3).getTextContent());
+                            double height=Double.parseDouble(hijos.item(i).getChildNodes().item(3).getTextContent());
+                            double width=Double.parseDouble(hijos.item(i).getChildNodes().item(5).getTextContent());
+                            
+                            OvalRoi oval = new OvalRoi(x, y, width, height);
+                            if(isGoldStandard){addRoi(oval);}
+                            else{addRoi2(oval);}
+                            //Sacamos por pantalla el elemento 1 y el 3 porque en la 0 y la dos tenemos los saltos de línea.
+                            /*
+                            System.out.println("Óvalo :\n \t x: "
+                                    + hijos.item(i).getChildNodes().item(1).getChildNodes().item(1).getTextContent() + "\n \t y: "
+                                    + hijos.item(i).getChildNodes().item(1).getChildNodes().item(3).getTextContent()
+                                    + "\n \t altura: " + hijos.item(i).getChildNodes().item(3).getTextContent()
+                                    + "\n \t anchura: " + hijos.item(i).getChildNodes().item(5).getTextContent());
+                            */
+                        }
+                    }
+                    break;
+
+                //Para el caso de la elipse
+                case ("ellipse"):
+                    for (int i = 0; i < hijos.getLength(); i++) {
+                        if (hijos.item(i).getNodeName() == "ellipse") {
+                            double x1=Double.parseDouble(hijos.item(i).getChildNodes().item(1).getChildNodes().item(1).getTextContent());
+                            double y1=Double.parseDouble(hijos.item(i).getChildNodes().item(1).getChildNodes().item(3).getTextContent());
+                            double x2=Double.parseDouble(hijos.item(i).getChildNodes().item(3).getChildNodes().item(1).getTextContent());
+                            double y2=Double.parseDouble(hijos.item(i).getChildNodes().item(3).getChildNodes().item(3).getTextContent());
+                            double aspectRatio=Double.parseDouble(hijos.item(i).getChildNodes().item(5).getTextContent());
+                            
+                            EllipseRoi ellipse = new EllipseRoi(x1, y1, x2, y2, aspectRatio);
+                            if(isGoldStandard){addRoi(ellipse);}
+                            else{addRoi2(ellipse);}
+                            //Sacamos por pantalla el elemento 1 y el 3 porque en la 0 y la dos tenemos los saltos de línea.
+                            /*
+                            System.out.println("Elipse :\n \t x: "
+                                    + hijos.item(i).getChildNodes().item(1).getChildNodes().item(1).getTextContent() + "\n \t y: "
+                                    + hijos.item(i).getChildNodes().item(1).getChildNodes().item(3).getTextContent()
+                                    + "\n \t x: " + hijos.item(i).getChildNodes().item(3).getChildNodes().item(1).getTextContent()
+                                    + "\n \t y: " + hijos.item(i).getChildNodes().item(3).getChildNodes().item(3).getTextContent()
+                                    + "\n \t radio de aspecto: " + hijos.item(i).getChildNodes().item(5).getTextContent());
+                            */
+                        }
+                    }
+                    break;
+
+                //Para el caso del círculo
+                case ("circle"):
+                    for (int i = 0; i < hijos.getLength(); i++) {
+                        if (hijos.item(i).getNodeName() == "circle") {
+                            double x = Double.parseDouble(hijos.item(i).getChildNodes().item(1).getChildNodes().item(1).getTextContent());
+                            double y = Double.parseDouble(hijos.item(i).getChildNodes().item(1).getChildNodes().item(3).getTextContent());
+                            double ratio = Double.parseDouble(hijos.item(i).getChildNodes().item(3).getTextContent());
+                            
+                            OvalRoi circle = new OvalRoi(x,y,ratio/*anchura*/,ratio/*altura*/);                           
+                            if(isGoldStandard){addRoi(circle);}
+                            else{addRoi2(circle);}
+                            //Sacamos por pantalla el elemento 1 y el 3 porque en la 0 y la dos tenemos los saltos de línea.
+                            /*
+                            System.out.println("Círculo :\n \t x: "
+                                    + hijos.item(i).getChildNodes().item(1).getChildNodes().item(1).getTextContent() + "\n \t y: "
+                                    + hijos.item(i).getChildNodes().item(1).getChildNodes().item(3).getTextContent()
+                                    + "\n \t radio: " + hijos.item(i).getChildNodes().item(3).getTextContent());
+                            */
+                        }
+                    }
+                    break;
+
+                //Para el caso del rectángulo
+                case ("rectangle"):
+                    for (int i = 0; i < hijos.getLength(); i++) {
+                        if (hijos.item(i).getNodeName() == "rectangle") {
+                            double x=Double.parseDouble(hijos.item(i).getChildNodes().item(1).getChildNodes().item(1).getTextContent());
+                            double y=Double.parseDouble(hijos.item(i).getChildNodes().item(1).getChildNodes().item(3).getTextContent());
+                            double height=Double.parseDouble(hijos.item(i).getChildNodes().item(3).getTextContent());
+                            double width=Double.parseDouble(hijos.item(i).getChildNodes().item(5).getTextContent());
+                            
+                            Roi rectangle = new Roi(x, y, width, height);
+                            if(isGoldStandard){addRoi(rectangle);}
+                            else{addRoi2(rectangle);}
+                            //Sacamos por pantalla el elemento 1 y el 3 porque en la 0 y la dos tenemos los saltos de línea.
+                            /*
+                            System.out.println("Rectángulo :\n \t x: "
+                                    + hijos.item(i).getChildNodes().item(1).getChildNodes().item(1).getTextContent() + "\n \t y: "
+                                    + hijos.item(i).getChildNodes().item(1).getChildNodes().item(3).getTextContent()
+                                    + "\n \t altura: " + hijos.item(i).getChildNodes().item(3).getTextContent()
+                                    + "\n \t anchura: " + hijos.item(i).getChildNodes().item(5).getTextContent());
+                            */
+                        }
+                    }
+                    break;
+
+                //Para el caso del cuadrado
+                case ("square"):
+                    for (int i = 0; i < hijos.getLength(); i++) {
+                        if (hijos.item(i).getNodeName() == "square") {
+                            double x=Double.parseDouble(hijos.item(i).getChildNodes().item(1).getChildNodes().item(1).getTextContent());
+                            double y=Double.parseDouble(hijos.item(i).getChildNodes().item(1).getChildNodes().item(3).getTextContent());
+                            double side=Double.parseDouble(hijos.item(i).getChildNodes().item(3).getTextContent());
+                            
+                            Roi square = new Roi(x, y, side, side);
+                            if(isGoldStandard){addRoi(square);}
+                            else{addRoi2(square);}
+                            //Sacamos por pantalla el elemento 1 y el 3 porque en la 0 y la dos tenemos los saltos de línea.
+                            /*
+                            System.out.println("Cuadrado :\n \t x: "
+                                    + hijos.item(i).getChildNodes().item(1).getChildNodes().item(1).getTextContent() + "\n \t y: "
+                                    + hijos.item(i).getChildNodes().item(1).getChildNodes().item(3).getTextContent()
+                                    + "\n \t lado: " + hijos.item(i).getChildNodes().item(3).getTextContent());
+                            */
+                        }
+                    }
+                    break;
+
+                //Para el caso del polígono
+                case ("polygon"):
+                    for (int i = 0; i < hijos.getLength(); i++) {
+                        if (hijos.item(i).getNodeName() == "polygon") {
+                            //System.out.println("Polígono: ");
+                            NodeList puntos = hijos.item(i).getChildNodes();
+                            
+                            ArrayList<Float> xs1 = new ArrayList<Float>();
+                            ArrayList<Float> ys1 = new ArrayList<Float>();
+                            for (int j = 0; j < puntos.getLength(); j++) {
+                                Node punto = hijos.item(i).getChildNodes().item(j);
+                                if ((punto.hasChildNodes())) {
+                                    xs1.add(Float.parseFloat(punto.getChildNodes().item(1).getTextContent()));
+                                    ys1.add(Float.parseFloat(punto.getChildNodes().item(3).getTextContent()));                                 
+                                    /*
+                                    System.out.println("\n\t Punto: \n \t\t x:" + punto.getChildNodes().item(1).getTextContent() + "\n \t\t y: "
+                                            + punto.getChildNodes().item(3).getTextContent());
+                                    */
+                                }
+                            }
+                            /*
+                            Para poder crear bien los vectores con las coordenadas hemos tenido que crear un par de ArrayList.
+                            De esta forma se añaden siempre seguidos, con un vector normal al pasarle en este caso j
+                            como no todos los puntos tienen childNodes(cuenta como punto también el tag de cierre) dejabamos un hueco
+                            libre en el vector. Así con los arrayLis están todos seguidos. El problema es que luego los tenemos que 
+                            recorrerlos para añadirlos a los vectores que hay que introducir en la clase polygon.
+                            */
+                            float[] xs= new float[xs1.size()];
+                            float[] ys= new float[ys1.size()];
+                            for(int k =0; k <xs1.size();k++){
+                                xs[k]=xs1.get(k);
+                                System.out.println("x:"+xs1.get(k));
+                                ys[k]=ys1.get(k);
+                                System.out.println("y:"+ys1.get(k));
+                            }                            
+                            PolygonRoi polygon = new PolygonRoi(xs, ys, xs.length, Roi.POLYGON);                     
+                            
+                            if(isGoldStandard){addRoi(polygon);}
+                            else{addRoi2(polygon);}                         
+                        }
+                    }
+                    break;
+            }
+
+        } catch (FileNotFoundException ex) {
+            ex.printStackTrace();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        } catch (SAXException e) {
+            System.out.println(new StreamSource(docXML).getSystemId() + " is NOT valid");
+            System.out.println("Reason: " + e.getLocalizedMessage());
+        } catch (ParserConfigurationException ex) {
+            ex.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -341,7 +673,7 @@ public class RoiComparisonManager extends PlugInFrame implements ActionListener,
             combinehyproi.setName("Hypothesised Roi Combination");
 
             RoiMatching rm = new RoiMatching(this, true, rois1, roisb, IJ.getImage(),
-                    combinetrueroi, combinehyproi,plot,listres);
+                    combinetrueroi, combinehyproi, plot, listres);
             rm.setVisible(true);
 
 //            compareseveralrois(rois1, roisb, IJ.getImage(),rt);
@@ -1251,11 +1583,10 @@ public class RoiComparisonManager extends PlugInFrame implements ActionListener,
                     if (roi != null) {
                         name = name.substring(0, name.length() - 4);
                         name = getUniqueName(name);
-                        
-                        
+
                         listModel2.addElement(name);
                         rois2.put(name, roi);
-                        
+
                         nRois++;
                     }
                 }
@@ -1532,7 +1863,7 @@ public class RoiComparisonManager extends PlugInFrame implements ActionListener,
      }
      */
 
-    /* This method performs measurements for several ROI's in a stack
+ /* This method performs measurements for several ROI's in a stack
      and arranges the results with one line per slice.  By constast, the 
      measure() method produces several lines per slice.	The results 
      from multiMeasure() may be easier to import into a spreadsheet 
