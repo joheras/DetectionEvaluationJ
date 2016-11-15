@@ -417,9 +417,7 @@ public class RoiComparisonManager extends PlugInFrame implements ActionListener,
         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
         File docXML = new File(path);
         File docXSD = new File("..\\ejemplo1.xsd");
-
         try {
-
             SchemaFactory factory = SchemaFactory.newInstance("http://www.w3.org/XML/XMLSchema/v1.1");
             Schema schema = factory.newSchema(docXSD);
             Validator validator = schema.newValidator();
@@ -429,12 +427,10 @@ public class RoiComparisonManager extends PlugInFrame implements ActionListener,
             DocumentBuilder builder = dbf.newDocumentBuilder();
             //Ruta del archivo xml a leer
             Document doc = builder.parse(docXML);
-
             //Obtenemos el elemento raiz que tiene el arachivo XML que estamos leyendo
             Element root = doc.getDocumentElement();
             //Mostramos el nombre para ver que realmente es lo que queremos obtener
             //System.out.println("Nombre del elemento raíz: " + root.getNodeName());
-
             /*
             Recogemos todos los elementos image del XML. En nuestro caso solo tenemos uno por archivo. Una vez que sabemos eso, lo que hacemos
             es obtener solo el primer elemento que es el que tiene la información y queremos leer.            
@@ -445,7 +441,6 @@ public class RoiComparisonManager extends PlugInFrame implements ActionListener,
             System.out.println("Archivo: "+path +"\n\tLa imagen de esa ruta tiene \n\t\t ruta: " + image.getChildNodes().item(1).getTextContent()
                     + "\n\t\t alto: " + image.getChildNodes().item(3).getTextContent()
                     + "\n\t\t ancho: " + image.getChildNodes().item(5).getTextContent() + "\n\n");
-
             /*
             Ahora nos vamos a centrar en sacar todas las regiones de interés que tendrá ese documento. Hay que tener en cuenta que el documento
             puede estar formado por diferentes regiones como puntos, cuadrados... es por ello que deberemos controlar qué elemento es el que
@@ -455,7 +450,6 @@ public class RoiComparisonManager extends PlugInFrame implements ActionListener,
              */
             NodeList rois = root.getElementsByTagName("ROIs");
             Element regiones = (Element) rois.item(0);
-
             //Obtenemos la lista con todas las regiones
             NodeList hijos = regiones.getChildNodes();
             //Comprobamos el tipo del tag que hemos leído para saber con que tipo de región de interés trabajar para obtener los datos.
@@ -603,9 +597,7 @@ public class RoiComparisonManager extends PlugInFrame implements ActionListener,
                 case ("polygon"):
                     for (int i = 0; i < hijos.getLength(); i++) {
                         if (hijos.item(i).getNodeName() == "polygon") {
-                            //System.out.println("Polígono: ");
-                            NodeList puntos = hijos.item(i).getChildNodes();
-                            
+                            NodeList puntos = hijos.item(i).getChildNodes();                            
                             ArrayList<Float> xs1 = new ArrayList<Float>();
                             ArrayList<Float> ys1 = new ArrayList<Float>();
                             for (int j = 0; j < puntos.getLength(); j++) {
