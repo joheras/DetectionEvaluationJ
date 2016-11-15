@@ -600,6 +600,7 @@ public class RoiComparisonManager extends PlugInFrame implements ActionListener,
                             NodeList puntos = hijos.item(i).getChildNodes();                            
                             ArrayList<Float> xs1 = new ArrayList<Float>();
                             ArrayList<Float> ys1 = new ArrayList<Float>();
+                            
                             for (int j = 0; j < puntos.getLength(); j++) {
                                 Node punto = hijos.item(i).getChildNodes().item(j);
                                 if ((punto.hasChildNodes())) {
