@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ROIsofImage xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="file:/C:/Users/magarcd/Desktop/ejemplo1.xsd">
+    <image>
+        <path>prueba.jpg</path>
+        <height>555</height>
+        <width>555</width>
+    </image>
+    <ROIs>
+        <oval>
+            <point>
+                <x>48</x>
+                <y>448</y>
+            </point>
+            <height>44</height>
+            <width>440</width>
+        </oval>
+        <oval>
+            <point>
+                <x>550</x>
+                <y>150</y>
+            </point>
+            <height>40</height>
+            <width>2</width>
+        </oval>
+    </ROIs>
+</ROIsofImage>

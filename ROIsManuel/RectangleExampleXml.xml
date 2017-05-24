@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ROIsofImage xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="file:ejemplo1.xsd">
+    <image>
+        <path>./pru.jpg</path>
+        <height>55</height>
+        <width>55</width>
+    </image>
+    <ROIs>
+        <rectangle>
+            <point>
+                <x>6</x>
+                <y>6</y>
+            </point>
+            <height>46</height>
+            <width>44</width>
+        </rectangle>
+        <rectangle>
+            <point>
+                <x>45</x>
+                <y>5</y>
+            </point>
+            <height>5</height>
+            <width>6</width>
+        </rectangle>
+    </ROIs>
+    
+    
+</ROIsofImage>

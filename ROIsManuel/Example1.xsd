@@ -1,0 +1,142 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning" vc:minVersion="1.1">
+    <!--Este es el elemento raíz que guardará los datos de las regiones de interés. Solo se podrá guardar en cada tipo de región de interés un tipo de
+elementos, es decir, solo se podrá guardar en una región elementos del tipo punto. En otra región elementos del tipo rectángulo, etc.    -->
+    <xs:element name="ROIsofImage">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="image" maxOccurs="1">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="path" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="height" type="xs:double" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="width" type="xs:double" minOccurs="1" maxOccurs="1"/>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="ROIs" maxOccurs="1">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:choice>
+                                <xs:element name="point" minOccurs="1" maxOccurs="unbounded"/>                               
+                                <xs:element name="oval" type="oval" minOccurs="1" maxOccurs="unbounded"/>
+                                <xs:element name="ellipse" type="ellipse" minOccurs="1" maxOccurs="unbounded"/>
+                                <xs:element name="circle" type="circle" minOccurs="1" maxOccurs="unbounded"/>
+                                <xs:element name="rectangle" type="rectangle" minOccurs="1" maxOccurs="unbounded"/>
+                                <xs:element name="square" type="square" minOccurs="1" maxOccurs="unbounded"/>
+                                <xs:element name="polygon" type="polygon" minOccurs="1" maxOccurs="unbounded"/>
+                            </xs:choice>
+                        </xs:sequence>
+                                              
+                    </xs:complexType>
+                    
+                </xs:element>
+            </xs:sequence>
+            
+            <!-- Estas son las restricciones para comprobar que los puntos no se pasen del tamaño de la imagen. De esta forma conseguimos que la región este dentro de la imagen. 
+                 Además de controlar los puntos también comprobaremos que el ancho o altura más la posición del punto tampoco exceda el tamaño de la imagen.-->
+            
+            <!-- Para puntos -->
+            <xs:assert test=" if (ROIs/point) then every $x in ROIs/point satisfies (image/width &gt; $x/x) and ($x/x >=0) else true()"/>
+            <xs:assert test=" if (ROIs/point) then every $y in ROIs/point satisfies (image/height &gt; $y/y) and ($y/y >=0) else true()"/>
+            <!-- Para óvalos -->
+            <xs:assert test=" if (ROIs/oval) then every $x in ROIs/oval satisfies (image/width &gt; $x/point/x)and($x/point/x >=0) else true()"/>
+            <xs:assert test=" if (ROIs/oval) then every $y in ROIs/oval satisfies (image/height &gt; $y/point/y)and ($y/point/y >=0) else true()"/>
+            <xs:assert test=" if (ROIs/oval) then every $y in ROIs/oval satisfies image/height &gt; ($y/point/y + $y/height)and ($y/height >=0) else true()"/>
+            <xs:assert test=" if (ROIs/oval) then every $x in ROIs/oval satisfies image/width &gt; ($x/point/x + $x/width)and ($x/width>=0) else true()"/>
+            <!-- Para elipses -->
+            <xs:assert test=" if (ROIs/ellipse) then every $x in ROIs/ellipse/point satisfies (image/width &gt; $x/x)and $x/x >=0 else true()"/>
+            <xs:assert test=" if (ROIs/ellipse) then every $y in ROIs/ellipse/point satisfies (image/height &gt; $y/y)and $y/y >=0 else true()"/>
+            <!-- Para el primer vertice del eje menor de la elipse -->
+            <xs:assert test=" if (ROIs/ellipse) then every $xa in ROIs/ellipse satisfies image/width &gt; ((($xa/point[2]/x+$xa/point[1]/x)+((($xa/point[1]/y)-($xa/point[2]/y))*$xa/aspectRatio))div 2) else true()"/>
+            <xs:assert test=" if (ROIs/ellipse) then every $xa in ROIs/ellipse satisfies ((($xa/point[2]/x+$xa/point[1]/x)+((($xa/point[1]/y)-($xa/point[2]/y))*$xa/aspectRatio))div 2) &gt; 0 else true()"/> 
+            <xs:assert test=" if (ROIs/ellipse) then every $ya in ROIs/ellipse satisfies image/height &gt; ((($ya/point[2]/y+$ya/point[1]/y)+((($ya/point[2]/x)-($ya/point[1]/x))*$ya/aspectRatio))div 2) else true()"/>
+            <xs:assert test=" if (ROIs/ellipse) then every $ya in ROIs/ellipse satisfies ((($ya/point[2]/y+$ya/point[1]/y)+((($ya/point[2]/x)-($ya/point[1]/x))*$ya/aspectRatio))div 2) &gt; 0 else true()"></xs:assert>
+            <!-- Para el segundo vertice del eje menor de la elipse -->
+            <xs:assert test=" if (ROIs/ellipse) then every $xb in ROIs/ellipse satisfies image/width &gt; ((($xb/point[2]/x+$xb/point[1]/x)-((($xb/point[1]/y)-($xb/point[2]/y))*$xb/aspectRatio))div 2) else true()"/>
+            <xs:assert test=" if (ROIs/ellipse) then every $xb in ROIs/ellipse satisfies ((($xb/point[2]/x+$xb/point[1]/x)-((($xb/point[1]/y)-($xb/point[2]/y))*$xb/aspectRatio))div 2) &gt; 0 else true()"/> 
+            <xs:assert test=" if (ROIs/ellipse) then every $yb in ROIs/ellipse satisfies image/height &gt; ((($yb/point[2]/y+$yb/point[1]/y)-((($yb/point[2]/x)-($yb/point[1]/x))*$yb/aspectRatio))div 2) else true()"/>
+            <xs:assert test=" if (ROIs/ellipse) then every $yb in ROIs/ellipse satisfies ((($yb/point[2]/y+$yb/point[1]/y)-((($yb/point[2]/x)-($yb/point[1]/x))*$yb/aspectRatio))div 2) &gt; 0 else true()"/> 
+            
+            <!-- Para círculos -->
+            <xs:assert test=" if (ROIs/circle) then every $x in ROIs/circle satisfies image/width &gt; ($x/point/x)and ($x/point/x >=0) else true()"/>
+            <xs:assert test=" if (ROIs/circle) then every $y in ROIs/circle satisfies image/height &gt; ($y/point/y)and ($y/point/y >=0) else true()"/>            
+            <xs:assert test=" if (ROIs/circle) then every $y in ROIs/circle satisfies image/height &gt; ($y/point/y + ($y/radius *2)) else true()"/>
+            <xs:assert test=" if (ROIs/circle) then every $x in ROIs/circle satisfies image/width &gt; ($x/point/x + ($x/radius *2)) else true()"/>
+            <!-- Para rectángulos -->
+            <xs:assert test=" if (ROIs/rectangle) then every $x in ROIs/rectangle satisfies image/width &gt; ($x/point/x)and ($x/point/x >=0) else true()"/>
+            <xs:assert test=" if (ROIs/rectangle) then every $y in ROIs/rectangle satisfies image/height &gt; ($y/point/y)and ($y/point/y >=0) else true()"/>            
+            <xs:assert test=" if (ROIs/rectangle) then every $y in ROIs/rectangle satisfies image/height &gt; ($y/point/y + $y/height)and($y/height &gt;= 0) else true()"/>
+            <xs:assert test=" if (ROIs/rectangle) then every $x in ROIs/rectangle satisfies image/width &gt; ($x/point/x + $x/width)and ($x/width &gt;=0) else true()"/>
+            <!-- Para cuadrados -->
+            <xs:assert test=" if (ROIs/square) then every $x in ROIs/square satisfies (image/width &gt; $x/point/x)and ($x/point/x >=0) else true()"/>
+            <xs:assert test=" if (ROIs/square) then every $y in ROIs/square satisfies (image/height &gt; $y/point/y)and ($y/point/y >=0) else true()"/>
+            
+            <xs:assert test=" if (ROIs/square) then every $y in ROIs/square satisfies image/height &gt; ($y/point/y + $y/side)and ($y/side >=0) else true()"/>
+            <xs:assert test=" if (ROIs/square) then every $x in ROIs/square satisfies image/width &gt; ($x/point/x + $x/side) else true()"/>
+            <!-- Para polígonos -->
+            <xs:assert test=" if (ROIs/polygon) then every $x in ROIs/polygon/point satisfies (image/width &gt; $x/x)and ($x/x >=0) else true()"/>
+            <xs:assert test=" if (ROIs/polygon) then every $y in ROIs/polygon/point satisfies (image/height &gt; $y/y)and ($y/y >=0) else true()"/>
+            
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Este tipo es el que define los puntos. -->
+    <xs:complexType name="point">
+        <xs:sequence>
+            <xs:element name="x" type="xs:double" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="y" type="xs:double" minOccurs="1" maxOccurs="1"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Este tipo es el que define los óvalos. Usa los puntos creados antes para ayudarnos a definirlos. -->
+    <xs:complexType name="oval">
+        <xs:sequence>
+            <xs:element name="point" type="point" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="height" type="xs:double" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="width" type="xs:double" minOccurs="1" maxOccurs="1"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Este tipo es el que define las elipses. Usa los puntos creados antes para ayudarnos a definirlos. -->
+    <xs:complexType name="ellipse">
+        <xs:sequence>
+            <xs:element name="point" type="point" minOccurs="2" maxOccurs="2"/>
+            <xs:element name="aspectRatio" type="xs:double" minOccurs="1" maxOccurs="1"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Este tipo es el que define los círculos. Usa los puntos creados antes para ayudarnos a definirlos. -->
+    <xs:complexType name="circle">
+        <xs:sequence>
+            <xs:element name="point" type="point" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="radius" type="xs:double" minOccurs="1" maxOccurs="1"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Este tipo es el que define los rectángulos. Usa los puntos creados antes para ayudarnos a definirlos. -->
+    <xs:complexType name="rectangle">
+        <xs:sequence>
+            <xs:element name="point" type="point" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="height" type="xs:double" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="width" type="xs:double" minOccurs="1" maxOccurs="1"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Este tipo es el que define los cuadrados. Usa los puntos creados antes para ayudarnos a definirlos. -->
+    <xs:complexType name="square">
+        <xs:sequence>
+            <xs:element name="point" type="point" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="side" type="xs:double" minOccurs="1" maxOccurs="1"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Este tipo es el que define los polígonos. Usa los puntos creados antes para ayudarnos a definirlos. -->
+    <xs:complexType name="polygon">
+        <xs:sequence>
+            <xs:element name="point" type="point" minOccurs="3" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    
+</xs:schema>
